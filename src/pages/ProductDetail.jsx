@@ -5,7 +5,8 @@ import { useGetProductBySlugQuery, useGetCategoriesQuery } from "../redux/apiSli
 import { addToCart } from "../redux/cartSlice";
 import { Star, Heart, Share2, Minus, Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 
-const BASE_URL = "http://157.230.240.97:9999/api/v1"; // Update this to your actual API base URL
+
+const BASE_URL = "http://157.230.240.97:9999/api/v1";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -22,17 +23,11 @@ const ProductDetail = () => {
   const { data: product, isLoading, error } = useGetProductBySlugQuery(slug);
   const { data: categories = [] } = useGetCategoriesQuery();
 
-  // Log the product and categories data for debugging
   useEffect(() => {
-    if (product) {
-      console.log("Fetched product data:", product);
-    }
-    if (categories) {
-      console.log("Fetched categories data:", categories);
-    }
+    if (product) console.log("Fetched product data:", product);
+    if (categories) console.log("Fetched categories data:", categories);
   }, [product, categories]);
 
-  // Set default selections when product loads
   useEffect(() => {
     if (product) {
       if (product.variations?.colors?.length > 0 && !selectedColor) {
@@ -45,35 +40,47 @@ const ProductDetail = () => {
   }, [product, selectedColor, selectedSize]);
 
   const handleAddToCart = () => {
-    if (!product) return;
+  const productData = {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    color: selectedColor,
+    size: selectedSize,
+    quantity: parseInt(quantity),
+  }
 
-    const cartItem = {
-      id: product.id || product._id,
-      name: product.name || product.title,
-      price: product.price,
-      image: product.images[0],  // Ensure this is valid
-      color: selectedColor || "Default",
-      size: selectedSize || "Default",
-      quantity,
-    };
+  dispatch(addToCart(productData))
+}
 
-    dispatch(addToCart(cartItem));
+  // const handleAddToCart = () => {
+  //   if (!product) return;
 
-    // Show success feedback
-    alert("Product added to cart!");
-  };
+  //   const cartItem = {
+  //     id: product.id || product._id,
+  //     name: product.name || product.title,
+  //     price: product.price || product.discount_price || product.regular_price,
+  //     image: product.images?.[0] || product.thumbnail,
+  //     color: selectedColor || "Default",
+  //     size: selectedSize || "Default",
+  //     quantity,
+  //   };
+
+  //   dispatch(addToCart(cartItem));
+  //   alert("Product added to cart!");
+  // };
 
   const handleQuantityChange = (type) => {
     if (type === "increment") {
-      setQuantity((prev) => prev + 1);
+      if (quantity < product.available_stock) {
+        setQuantity((prev) => prev + 1);
+      }
     } else if (type === "decrement" && quantity > 1) {
       setQuantity((prev) => prev - 1);
     }
   };
 
-  // Check for loading and error states
   if (isLoading) {
-    console.log("Loading product...");
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -83,7 +90,6 @@ const ProductDetail = () => {
   }
 
   if (error || !product) {
-    console.log("Error or no product found");
     return (
       <div className="text-center py-12">
         <p className="text-red-600 mb-4">Product not found</p>
@@ -94,9 +100,7 @@ const ProductDetail = () => {
     );
   }
 
-  // Ensure that product.images is an array before accessing
   if (!Array.isArray(product.images) || product.images.length === 0) {
-    console.log('No images available for this product');
     return (
       <div className="text-center py-12">
         <p className="text-red-600 mb-4">No images available for this product.</p>
@@ -108,32 +112,17 @@ const ProductDetail = () => {
   }
 
   const productCategory = categories.find((cat) => cat.id === product.categoryId || cat.name === product.category?.name);
-  console.log("Selected Category:", productCategory); // Verify selected category
 
-  // Helper function to get the full image URL
   const getImageUrl = (imagePath) => {
-    if (!imagePath) {
-      console.log('No image URL provided');
-      return "/placeholder.svg?height=600&width=600";  // Fallback URL
-    }
-
+    if (!imagePath) return "/placeholder.svg?height=600&width=600";
     if (typeof imagePath === "string") {
-      // Check if the imagePath is a valid URL (e.g., contains 'http')
-      if (imagePath.startsWith("http") || imagePath.startsWith("https")) {
-        return imagePath;  // Return the full URL
-      } else {
-        // Append the base URL if the imagePath is relative
-        return BASE_URL + imagePath; // BASE_URL should be defined at the top of your file
-      }
+      return imagePath.startsWith("http") ? imagePath : BASE_URL + imagePath;
     }
-
-    // If it's not a valid string, return the fallback image
     return "/placeholder.svg?height=600&width=600";
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Breadcrumb */}
       <div className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
         <button onClick={() => navigate("/")} className="hover:text-blue-600">Home</button>
         <span>/</span>
@@ -147,22 +136,15 @@ const ProductDetail = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Product Images */}
         <div className="space-y-4">
-          {/* Main Image */}
           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
             <img
-              src={getImageUrl(product.images[selectedImage])}
+              src={product.thumbnail}
               alt={product.name}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                console.log('Image failed to load, using fallback');
-                e.target.src = "/placeholder.svg?height=600&width=600";
-              }}
             />
           </div>
 
-          {/* Thumbnail Images */}
           {product.images.length > 1 && (
             <div className="flex space-x-2 overflow-x-auto">
               {product.images.map((image, index) => (
@@ -175,10 +157,7 @@ const ProductDetail = () => {
                     src={getImageUrl(image)}
                     alt=""
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      console.log('Thumbnail image failed to load, using fallback');
-                      e.target.src = "/placeholder.svg?height=80&width=80";
-                    }}
+                    onError={(e) => { e.target.src = "/placeholder.svg?height=80&width=80"; }}
                   />
                 </button>
               ))}
@@ -186,9 +165,7 @@ const ProductDetail = () => {
           )}
         </div>
 
-        {/* Product Info */}
         <div className="space-y-6">
-          {/* Category Badge */}
           {productCategory && (
             <div className="inline-block">
               <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
@@ -200,7 +177,6 @@ const ProductDetail = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
 
-            {/* Rating */}
             <div className="flex items-center space-x-4 mb-4">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
@@ -214,7 +190,6 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Price */}
           <div className="flex items-center space-x-4">
             <span className="text-3xl font-bold text-gray-900">${product.price}</span>
             {product.originalPrice && product.originalPrice > product.price && (
@@ -227,15 +202,13 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {/* Stock Status */}
           <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${product.inStock ? "bg-green-500" : "bg-red-500"}`}></div>
-            <span className={`font-medium ${product.inStock ? "text-green-600" : "text-red-600"}`}>
-              {product.inStock ? "In Stock" : "Out of Stock"}
+            <div className={`w-3 h-3 rounded-full ${product.available_stock > 0 ? "bg-green-500" : "bg-red-500"}`}></div>
+            <span className={`font-medium ${product.available_stock > 0 ? "text-green-600" : "text-red-600"}`}>
+              {product.available_stock > 0 ? "In Stock" : "Out of Stock"}
             </span>
           </div>
 
-          {/* Color Selection */}
           {product.variations?.colors?.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Color: {selectedColor}</h3>
@@ -247,15 +220,12 @@ const ProductDetail = () => {
                     className={`w-12 h-12 rounded-lg border-2 ${selectedColor === color ? "border-blue-500" : "border-gray-300"}`}
                     style={{ backgroundColor: color.toLowerCase() }}
                     title={color}
-                  >
-                    <span className="sr-only">{color}</span>
-                  </button>
+                  />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Size Selection */}
           {product.variations?.sizes?.length > 0 && (
             <div>
               <h3 className="text-lg font-semibold mb-3">Size: {selectedSize}</h3>
@@ -273,7 +243,6 @@ const ProductDetail = () => {
             </div>
           )}
 
-          {/* Quantity */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Quantity</h3>
             <div className="flex items-center space-x-4">
@@ -286,25 +255,27 @@ const ProductDetail = () => {
                   <Minus className="h-4 w-4" />
                 </button>
                 <span className="px-4 py-3 font-medium">{quantity}</span>
-                <button onClick={() => handleQuantityChange("increment")} className="p-3 hover:bg-gray-50">
+                <button
+                  onClick={() => handleQuantityChange("increment")}
+                  className="p-3 hover:bg-gray-50"
+                  disabled={quantity >= product.available_stock}
+                >
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            disabled={!product.inStock}
+            disabled={product.available_stock <= 0}
             className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {product.inStock ? "Add to Cart" : "Out of Stock"}
+            {product.available_stock > 0 ? "Add to Cart" : "Out of Stock"}
           </button>
         </div>
       </div>
 
-      {/* Description Section */}
       <div className="mt-16 border-t pt-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Description</h2>
@@ -323,7 +294,6 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* Specifications Section */}
       {product.specifications && Object.keys(product.specifications).length > 0 && (
         <div className="mt-12 border-t pt-8">
           <div className="flex items-center justify-between mb-4">

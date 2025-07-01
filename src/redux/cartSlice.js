@@ -52,7 +52,6 @@ const cartSlice = createSlice({
         })
       }
 
-      // Recalculate totals
       state.totalQuantity = state.items.reduce((total, item) => total + item.quantity, 0)
       state.totalAmount = state.items.reduce((total, item) => total + item.totalPrice, 0)
 
@@ -67,7 +66,6 @@ const cartSlice = createSlice({
         item.quantity = quantity
         item.totalPrice = item.price * quantity
 
-        // Recalculate totals
         state.totalQuantity = state.items.reduce((total, item) => total + item.quantity, 0)
         state.totalAmount = state.items.reduce((total, item) => total + item.totalPrice, 0)
 
@@ -79,7 +77,6 @@ const cartSlice = createSlice({
       const { cartItemId } = action.payload
       state.items = state.items.filter((item) => item.cartItemId !== cartItemId)
 
-      // Recalculate totals
       state.totalQuantity = state.items.reduce((total, item) => total + item.quantity, 0)
       state.totalAmount = state.items.reduce((total, item) => total + item.totalPrice, 0)
 

@@ -22,7 +22,6 @@ const Cart = () => {
   }
 
   const applyCoupon = () => {
-    // Mock coupon logic
     if (couponCode.toLowerCase() === "save10") {
       setDiscount(totalAmount * 0.1)
       alert("Coupon applied! 10% discount")
@@ -39,7 +38,7 @@ const Cart = () => {
   const shipping = subtotal > 100 ? 0 : 10
   const finalTotal = subtotal - discount + shipping
 
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
         <ShoppingBag className="h-24 w-24 text-gray-300 mx-auto mb-6" />
@@ -60,15 +59,13 @@ const Cart = () => {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
             <div key={item.cartItemId} className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex items-center space-x-4">
-                {/* Product Image */}
                 <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                   <img
-                    src={item.image || "/placeholder.svg?height=96&width=96"}
+                    src={item.thumbnail}
                     alt={item.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -77,7 +74,6 @@ const Cart = () => {
                   />
                 </div>
 
-                {/* Product Details */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-gray-900 truncate">{item.name}</h3>
                   <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
@@ -105,13 +101,16 @@ const Cart = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-gray-900">${item.totalPrice.toFixed(2)}</div>
-                      <div className="text-sm text-gray-600">${item.price.toFixed(2)} each</div>
+                      <div className="text-lg font-bold text-gray-900">
+                        ${item.totalPrice ? item.totalPrice.toFixed(2) : (item.price * item.quantity).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        ${item.price ? item.price.toFixed(2) : "0.00"} each
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Remove Button */}
                 <button
                   onClick={() => handleRemoveItem(item.cartItemId)}
                   className="p-2 text-gray-400 hover:text-red-500 transition-colors"
@@ -123,12 +122,10 @@ const Cart = () => {
           ))}
         </div>
 
-        {/* Order Summary */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-24">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
 
-            {/* Coupon Code */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Coupon Code</label>
               <div className="flex space-x-2">
@@ -149,7 +146,6 @@ const Cart = () => {
               <p className="text-xs text-gray-500 mt-1">Try: SAVE10 or SAVE20</p>
             </div>
 
-            {/* Price Breakdown */}
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
@@ -173,7 +169,6 @@ const Cart = () => {
               </div>
             </div>
 
-            {/* Terms and Conditions */}
             <div className="mb-6">
               <label className="flex items-start space-x-3">
                 <input
@@ -183,19 +178,13 @@ const Cart = () => {
                   className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <span className="text-sm text-gray-600">
-                  I agree to the{" "}
-                  <a href="#" className="text-blue-600 hover:underline">
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a href="#" className="text-blue-600 hover:underline">
-                    Privacy Policy
-                  </a>
+                  I agree to the {" "}
+                  <a href="#" className="text-blue-600 hover:underline">Terms & Conditions</a> and {" "}
+                  <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
                 </span>
               </label>
             </div>
 
-            {/* Checkout Button */}
             <button
               disabled={!agreeToTerms}
               className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
@@ -203,7 +192,6 @@ const Cart = () => {
               Proceed to Checkout
             </button>
 
-            {/* Continue Shopping */}
             <Link to="/" className="block text-center text-blue-600 hover:text-blue-700 mt-4 font-medium">
               Continue Shopping
             </Link>

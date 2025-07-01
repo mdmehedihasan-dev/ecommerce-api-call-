@@ -34,7 +34,6 @@ export const apiSlice = createApi({
       },
       providesTags: ["Product"],
       transformResponse: (response) => {
-        console.log(response)
         return response?.data || response || []
       },
     }),

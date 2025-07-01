@@ -98,7 +98,7 @@ const Home = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => {
-              console.log("Rendering product:", product); // Log each product to see if the data is correct
+              console.log("Rendering product:", product); 
               return (
                 <Link
                   key={product.id || product._id}
@@ -107,7 +107,7 @@ const Home = () => {
                 >
                   <div className="aspect-square bg-gray-100">
                     <img
-                      src={product.thumbnail || "/placeholder.svg?height=300&width=300"}
+                      src={product.thumbnail}
                       alt={product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
