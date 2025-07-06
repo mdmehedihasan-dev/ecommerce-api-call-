@@ -1,7 +1,7 @@
 import { useGetProductsQuery, useGetCategoriesQuery } from "../redux/apiSlice";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Star, Loader2 } from "lucide-react";
+import { Star, Loader2 } from "lucide-react"
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
